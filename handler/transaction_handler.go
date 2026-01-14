@@ -213,3 +213,43 @@ func (th *TrxHandler) DeleteTransaction(ctx *gin.Context) {
 		"message": "Successfully Deleted Transction.",
 	})
 }
+
+func (th *TrxHandler) UpdateTransaction(ctx *gin.Context) {
+	trxId := ctx.Param("id")
+
+	var trx model.Transaction
+	if err := ctx.ShouldBindJSON(&trx); err != nil {
+		fmt.Println("Failed Processing Payload : " + err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": "false",
+			"message": "Invalid Request.",
+		})
+		return
+	}
+
+	idNum, err := strconv.ParseInt(trxId, 10, 64)
+	if err != nil {
+		fmt.Println("Invalid Transaction Id : " + err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": "false",
+			"message": "Invalid Transaction Id.",
+		})
+		return
+	}
+	trx.Id = idNum
+
+	newTrx, err := th.ts.Update(ctx, trx, idNum)
+	if err != nil {
+		fmt.Println("Failed to Update Transaction : " + err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"success": "false",
+			"message": "Failed to Update Transaction.",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success":     "true",
+		"transaction": newTrx,
+	})
+}

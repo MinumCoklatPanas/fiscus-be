@@ -25,6 +25,7 @@ type TrxService interface {
 
 	Create(ctx context.Context, trx model.Transaction, accountNumber string, category string) (model.Transaction, error)
 	Delete(ctx context.Context, trxId int64) error
+	Update(ctx context.Context, newTrx model.Transaction, trxId int64) (model.Transaction, error)
 	DeleteByAccountId(ctx context.Context, accountId uuid.UUID) error
 }
 
@@ -142,6 +143,39 @@ func (ts *trxService) Delete(ctx context.Context, trxId int64) error {
 	}
 
 	return ts.tr.Delete(ctx, trxId)
+}
+
+func (ts *trxService) Update(ctx context.Context, newTrx model.Transaction, trxId int64) (model.Transaction, error) {
+	existingTrx, err := ts.tr.Find(ctx, model.Transaction{Id: trxId})
+	if err != nil {
+		return model.Transaction{}, err
+	}
+
+	if len(existingTrx) == 0 {
+		return model.Transaction{}, errors.New("Multiple Transaction Detected.")
+	}
+
+	if newTrx.Amount == 0 {
+		newTrx.Amount = existingTrx[0].Amount
+	}
+
+	if newTrx.TrxDate.IsZero() {
+		newTrx.TrxDate = existingTrx[0].TrxDate
+	}
+
+	if newTrx.CategoryId != uuid.Nil {
+		newTrx.CategoryId = existingTrx[0].CategoryId
+	}
+
+	if newTrx.Notes == nil {
+		newTrx.Notes = existingTrx[0].Notes
+	}
+
+	if newTrx.TrxType == "" {
+		newTrx.TrxType = existingTrx[0].TrxType
+	}
+
+	return ts.tr.Update(ctx, newTrx)
 }
 
 func (ts *trxService) DeleteByAccountId(ctx context.Context, accountId uuid.UUID) error {

@@ -24,6 +24,7 @@ type TrxRepository interface {
 	Create(ctx context.Context, trx model.Transaction) (model.Transaction, error)
 	Delete(ctx context.Context, trxId int64) error
 	Find(ctx context.Context, filter model.Transaction) ([]model.Transaction, error)
+	Update(ctx context.Context, trx model.Transaction) (model.Transaction, error)
 	DeleteByAccountId(ctx context.Context, accountId uuid.UUID) error
 }
 
@@ -87,6 +88,11 @@ func (tr *trxRepository) Find(ctx context.Context, filter model.Transaction) ([]
 	}
 
 	return trxs, nil
+}
+
+func (tr *trxRepository) Update(ctx context.Context, trx model.Transaction) (model.Transaction, error) {
+	result := tr.DB.WithContext(ctx).Model(&trx).Updates(trx)
+	return trx, result.Error
 }
 
 func (tr *trxRepository) DeleteByAccountId(ctx context.Context, accountId uuid.UUID) error {
