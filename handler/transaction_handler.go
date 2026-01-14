@@ -186,3 +186,30 @@ func (th *TrxHandler) CreateTransaction(ctx *gin.Context) {
 		"transactions": newTrx,
 	})
 }
+
+func (th *TrxHandler) DeleteTransaction(ctx *gin.Context) {
+	trxId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		fmt.Println("Error Parsing Id: " + err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": "false",
+			"message": "Invalid Transaction Id.",
+		})
+		return
+	}
+
+	err = th.ts.Delete(ctx, int64(trxId))
+	if err != nil {
+		fmt.Println("Failed to delete transaction: " + err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"success": "false",
+			"message": "Failed to Delete Transaction.",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": "true",
+		"message": "Successfully Deleted Transction.",
+	})
+}

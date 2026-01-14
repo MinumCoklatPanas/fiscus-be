@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fiscus/model"
 	"fiscus/repository"
 	"fiscus/util"
@@ -23,6 +24,7 @@ type TrxService interface {
 	) ([]model.Transaction, int64, error)
 
 	Create(ctx context.Context, trx model.Transaction, accountNumber string, category string) (model.Transaction, error)
+	Delete(ctx context.Context, trxId int64) error
 	DeleteByAccountId(ctx context.Context, accountId uuid.UUID) error
 }
 
@@ -102,6 +104,44 @@ func (ts *trxService) Create(ctx context.Context, trx model.Transaction, account
 	trx.CategoryId = categoryObject.Id
 
 	return ts.tr.Create(ctx, trx)
+}
+
+func (ts *trxService) Delete(ctx context.Context, trxId int64) error {
+	var trxs []model.Transaction
+	trxs, err := ts.tr.Find(ctx, model.Transaction{Id: trxId})
+	if err != nil {
+		return err
+	}
+
+	if len(trxs) == 0 {
+		return errors.New("Cannot Find Transaction.")
+	}
+
+	curTrx := trxs[0]
+	delta := curTrx.Amount
+	if curTrx.TrxType == "income" {
+		delta *= -1
+	}
+
+	account, err := ts.as.GetAccount(ctx, model.Account{Id: curTrx.AccountId})
+	if err != nil {
+		return err
+	}
+
+	if len(account) == 0 {
+		return errors.New("Cannot Find Account.")
+	}
+
+	if len(account) > 1 {
+		return errors.New("Invalid Account.")
+	}
+
+	_, err = ts.as.UpdateAccountBalance(ctx, account[0], delta)
+	if err != nil {
+		return err
+	}
+
+	return ts.tr.Delete(ctx, trxId)
 }
 
 func (ts *trxService) DeleteByAccountId(ctx context.Context, accountId uuid.UUID) error {

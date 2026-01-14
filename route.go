@@ -55,6 +55,7 @@ func RegisterTrxRoutes(db *gorm.DB, server *gin.RouterGroup) {
 	fmt.Println("Registering Trx Routes..")
 	server.GET("/transactions", th.GetTransactions)
 	server.POST("/transaction", th.CreateTransaction)
+	server.DELETE("/transaction/:id", th.DeleteTransaction)
 }
 
 func RegisterAuthRoutes(server *gin.Engine) {
