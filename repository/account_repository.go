@@ -5,6 +5,7 @@ import (
 	"fiscus/model"
 	"fmt"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -13,6 +14,7 @@ type AccountRepository interface {
 	FindByFilter(context context.Context, filter model.Account) ([]model.Account, error)
 	Create(context context.Context, account model.Account) (model.Account, error)
 	Update(ctx context.Context, account model.Account) (model.Account, error)
+	Delete(ctx context.Context, accountId uuid.UUID) error
 }
 
 type accountRepository struct {
@@ -45,4 +47,8 @@ func (ar *accountRepository) Create(context context.Context, account model.Accou
 func (ar *accountRepository) Update(ctx context.Context, account model.Account) (model.Account, error) {
 	result := ar.DB.WithContext(ctx).Model(&account).Updates(account)
 	return account, result.Error
+}
+
+func (ar *accountRepository) Delete(ctx context.Context, accountId uuid.UUID) error {
+	return ar.DB.WithContext(ctx).Delete(&model.Account{}, accountId).Error
 }

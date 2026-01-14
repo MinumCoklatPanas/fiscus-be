@@ -22,6 +22,7 @@ type TrxRepository interface {
 	) ([]model.Transaction, int64, error)
 
 	Create(ctx context.Context, trx model.Transaction) (model.Transaction, error)
+	DeleteByAccountId(ctx context.Context, accountId uuid.UUID) error
 }
 
 type trxRepository struct {
@@ -69,6 +70,10 @@ func (tr *trxRepository) FindAll(
 }
 
 func (tr *trxRepository) Create(ctx context.Context, trx model.Transaction) (model.Transaction, error) {
-	result := tr.DB.Create(&trx)
+	result := tr.DB.WithContext(ctx).Create(&trx)
 	return trx, result.Error
+}
+
+func (tr *trxRepository) DeleteByAccountId(ctx context.Context, accountId uuid.UUID) error {
+	return tr.DB.WithContext(ctx).Delete(&model.Transaction{}, "account_id = ?", accountId).Error
 }

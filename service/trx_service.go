@@ -23,6 +23,7 @@ type TrxService interface {
 	) ([]model.Transaction, int64, error)
 
 	Create(ctx context.Context, trx model.Transaction, accountNumber string, category string) (model.Transaction, error)
+	DeleteByAccountId(ctx context.Context, accountId uuid.UUID) error
 }
 
 type trxService struct {
@@ -101,4 +102,8 @@ func (ts *trxService) Create(ctx context.Context, trx model.Transaction, account
 	trx.CategoryId = categoryObject.Id
 
 	return ts.tr.Create(ctx, trx)
+}
+
+func (ts *trxService) DeleteByAccountId(ctx context.Context, accountId uuid.UUID) error {
+	return ts.tr.DeleteByAccountId(ctx, accountId)
 }

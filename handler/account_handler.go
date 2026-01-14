@@ -12,10 +12,11 @@ import (
 
 type AccountHandler struct {
 	as service.AccountService
+	ts service.TrxService
 }
 
-func NewAccountHandler(as service.AccountService) *AccountHandler {
-	return &AccountHandler{as: as}
+func NewAccountHandler(as service.AccountService, ts service.TrxService) *AccountHandler {
+	return &AccountHandler{as: as, ts: ts}
 }
 
 func (ah *AccountHandler) GetAllAccounts(context *gin.Context) {
@@ -113,5 +114,42 @@ func (ah *AccountHandler) UpdateAccount(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": "true",
 		"account": newAccount,
+	})
+}
+
+func (ah *AccountHandler) DeleteAccount(ctx *gin.Context) {
+	accountId, err := uuid.Parse(ctx.Param("accountId"))
+	if err != nil {
+		fmt.Println("Failed to parse id: " + err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"success": "false",
+			"message": "Invalid Account Id.",
+		})
+		return
+	}
+
+	err = ah.ts.DeleteByAccountId(ctx, accountId)
+	if err != nil {
+		fmt.Println("Failed to delte transactions: " + err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"success": "false",
+			"message": "Failed to Delete Transactions.",
+		})
+		return
+	}
+
+	err = ah.as.DeleteAccount(ctx, accountId)
+	if err != nil {
+		fmt.Println("Failed to delete account: " + err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"success": "false",
+			"message": "Failed to Delete Account.",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": "true",
+		"message": "Successfully Deleted Account",
 	})
 }

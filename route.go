@@ -13,13 +13,21 @@ import (
 func RegisterAccountRoutes(db *gorm.DB, server *gin.RouterGroup) {
 	ar := repository.NewAccountRepository(db)
 	as := service.NewAccountService(ar)
-	ah := handler.NewAccountHandler(as)
+
+	cr := repository.NewCategoryRepository(db)
+	cs := service.NewCategoryService(cr)
+
+	tr := repository.NewTrxRepository(db)
+	ts := service.NewTrxService(tr, as, cs)
+
+	ah := handler.NewAccountHandler(as, ts)
 
 	fmt.Println("Registering Account Routes..")
 	server.GET("/accounts", ah.GetAllAccounts)
 	server.GET("/account", ah.GetAccount)
 	server.POST("/account", ah.CreateAccount)
 	server.PATCH("/account/:accountId", ah.UpdateAccount)
+	server.DELETE("/account/:accountId", ah.DeleteAccount)
 }
 
 func RegisterCategoryRoutes(db *gorm.DB, server *gin.RouterGroup) {

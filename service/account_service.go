@@ -17,6 +17,7 @@ type AccountService interface {
 	CreateAccount(context context.Context, account model.Account) (model.Account, error)
 	UpdateAccountBalance(ctx context.Context, account model.Account, delta float64) (model.Account, error)
 	UpdateAccount(ctx context.Context, account model.Account, accountId uuid.UUID) (model.Account, error)
+	DeleteAccount(ctx context.Context, accountId uuid.UUID) error
 }
 
 type accountService struct {
@@ -86,4 +87,8 @@ func (as *accountService) UpdateAccount(ctx context.Context, newAccount model.Ac
 	}
 
 	return as.ar.Update(ctx, newAccount)
+}
+
+func (as *accountService) DeleteAccount(ctx context.Context, accountId uuid.UUID) error {
+	return as.ar.Delete(ctx, accountId)
 }
