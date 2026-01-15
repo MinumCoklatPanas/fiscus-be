@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type TrxHandler struct {
@@ -126,6 +128,7 @@ func (th *TrxHandler) CreateTransaction(ctx *gin.Context) {
 		TrxDate       string
 		TrxType       model.TrxTypeEnum
 		Amount        float64
+		Notes         *string
 	}
 
 	var req Req
@@ -169,6 +172,7 @@ func (th *TrxHandler) CreateTransaction(ctx *gin.Context) {
 		TrxDate: trxDateParsed,
 		TrxType: req.TrxType,
 		Amount:  req.Amount,
+		Notes:   req.Notes,
 	}
 
 	newTrx, err := th.ts.Create(ctx, trx, accountNumber, cat)
@@ -217,14 +221,36 @@ func (th *TrxHandler) DeleteTransaction(ctx *gin.Context) {
 func (th *TrxHandler) UpdateTransaction(ctx *gin.Context) {
 	trxId := ctx.Param("id")
 
-	var trx model.Transaction
-	if err := ctx.ShouldBindJSON(&trx); err != nil {
+	type Req struct {
+		Amount     float64
+		TrxDate    string
+		CategoryId uuid.UUID
+		Notes      *string
+		TrxType    model.TrxTypeEnum
+	}
+	var req Req
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		fmt.Println("Failed Processing Payload : " + err.Error())
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"success": "false",
 			"message": "Invalid Request.",
 		})
 		return
+	}
+
+	trxDateParsed := time.Time{}
+	var err error
+	if req.TrxDate != "" {
+		trxDateParsed, err = util.StringToTime(req.TrxDate)
+		if err != nil {
+			fmt.Println("Failed to parse trx date: " + err.Error())
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"success": "false",
+				"message": "Invalid Transaction Date.",
+			})
+			return
+		}
 	}
 
 	idNum, err := strconv.ParseInt(trxId, 10, 64)
@@ -236,7 +262,15 @@ func (th *TrxHandler) UpdateTransaction(ctx *gin.Context) {
 		})
 		return
 	}
-	trx.Id = idNum
+
+	trx := model.Transaction{
+		Id:         idNum,
+		Amount:     req.Amount,
+		TrxDate:    trxDateParsed,
+		CategoryId: req.CategoryId,
+		Notes:      req.Notes,
+		TrxType:    req.TrxType,
+	}
 
 	newTrx, err := th.ts.Update(ctx, trx, idNum)
 	if err != nil {

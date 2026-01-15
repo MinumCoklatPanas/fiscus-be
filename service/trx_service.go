@@ -6,6 +6,7 @@ import (
 	"fiscus/model"
 	"fiscus/repository"
 	"fiscus/util"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -155,8 +156,29 @@ func (ts *trxService) Update(ctx context.Context, newTrx model.Transaction, trxI
 		return model.Transaction{}, errors.New("Multiple Transaction Detected.")
 	}
 
+	if len(existingTrx) > 1 {
+		return model.Transaction{}, errors.New("Duplicate Transaction Id Found.")
+	}
+
 	if newTrx.Amount == 0 {
 		newTrx.Amount = existingTrx[0].Amount
+	} else {
+		var delta float64
+		if existingTrx[0].TrxType == "expense" {
+			delta = existingTrx[0].Amount - newTrx.Amount
+		} else {
+			delta = newTrx.Amount - existingTrx[0].Amount
+		}
+
+		account, err := ts.as.GetAccount(ctx, model.Account{Id: existingTrx[0].AccountId})
+		if err != nil {
+			return model.Transaction{}, err
+		}
+
+		_, err = ts.as.UpdateAccountBalance(ctx, account[0], delta)
+		if err != nil {
+			return model.Transaction{}, err
+		}
 	}
 
 	if newTrx.TrxDate.IsZero() {
@@ -175,6 +197,7 @@ func (ts *trxService) Update(ctx context.Context, newTrx model.Transaction, trxI
 		newTrx.TrxType = existingTrx[0].TrxType
 	}
 
+	fmt.Println("Updating Transaction..")
 	return ts.tr.Update(ctx, newTrx)
 }
 
