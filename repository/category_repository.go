@@ -23,13 +23,13 @@ func NewCategoryRepository(DB *gorm.DB) CategoryRepository {
 
 func (cr *categoryRepository) FindAll(ctx context.Context) ([]model.Category, error) {
 	var categories []model.Category
-	err := cr.DB.WithContext(ctx).Find(&categories).Error
+	err := cr.DB.WithContext(ctx).Order("name ASC").Find(&categories).Error
 	return categories, err
 }
 
 func (cr *categoryRepository) FindByFilter(ctx context.Context, filter model.Category) ([]model.Category, error) {
 	var categories []model.Category
-	err := cr.DB.WithContext(ctx).Where(filter).Find(&categories).Error
+	err := cr.DB.WithContext(ctx).Where(filter).Order("name ASC").Find(&categories).Error
 	return categories, err
 }
 

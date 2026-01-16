@@ -67,7 +67,7 @@ func (tr *trxRepository) FindAll(
 
 	offset := (pagination.Page - 1) * pagination.PageSize
 
-	err := query.Limit(int(pagination.PageSize)).Offset(int(offset)).Order("trx_date DESC").Find(&trxs).Error
+	err := query.Limit(int(pagination.PageSize)).Offset(int(offset)).Order("trx_date DESC").Order("created_at DESC").Find(&trxs).Error
 
 	return trxs, count, err
 }

@@ -28,14 +28,14 @@ func NewAccountRepository(DB *gorm.DB) AccountRepository {
 func (ar *accountRepository) FindAll(context context.Context) ([]model.Account, error) {
 	fmt.Println("Processing query..")
 	var accounts []model.Account
-	err := ar.DB.WithContext(context).Omit("Transactions").Find(&accounts).Error
+	err := ar.DB.WithContext(context).Omit("Transactions").Order("owner_name ASC").Find(&accounts).Error
 	fmt.Println("Finished Processing Query..")
 	return accounts, err
 }
 
 func (ar *accountRepository) FindByFilter(context context.Context, filter model.Account) ([]model.Account, error) {
 	var accounts []model.Account
-	err := ar.DB.WithContext(context).Where(filter).Find(&accounts).Error
+	err := ar.DB.WithContext(context).Where(filter).Order("owner_name ASC").Find(&accounts).Error
 	return accounts, err
 }
 
