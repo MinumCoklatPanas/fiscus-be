@@ -185,7 +185,7 @@ func (ts *trxService) Update(ctx context.Context, newTrx model.Transaction, trxI
 		newTrx.TrxDate = existingTrx[0].TrxDate
 	}
 
-	if newTrx.CategoryId != uuid.Nil {
+	if newTrx.CategoryId == uuid.Nil {
 		newTrx.CategoryId = existingTrx[0].CategoryId
 	}
 
