@@ -65,7 +65,7 @@ func (cr *categoryRepository) SumPerTrx(
 	}
 
 	if categoryId != uuid.Nil {
-		query = query.Where("id = ?", categoryId)
+		query = query.Where("categories.id = ?", categoryId)
 	}
 
 	query = query.Where("trx_type = ?", trxType)
