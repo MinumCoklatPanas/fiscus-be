@@ -8,7 +8,7 @@ type Pagination struct {
 func (p *Pagination) Normalize() {
 	p.Page = max(p.Page, 1)
 
-	if p.PageSize <= 0 || p.PageSize >= 20 {
+	if p.PageSize <= 0 || p.PageSize > 50 {
 		p.PageSize = 20
 	}
 }
