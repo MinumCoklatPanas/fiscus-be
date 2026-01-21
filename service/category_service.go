@@ -17,6 +17,7 @@ type CategoryService interface {
 	CreateCategory(ctx context.Context, category model.Category) (model.Category, error)
 	GetSumPerCategory(
 		ctx context.Context,
+		trxType model.TrxTypeEnum,
 		startDate time.Time,
 		endDate time.Time,
 		accountNumber string,
@@ -54,6 +55,7 @@ func (cs *categoryService) CreateCategory(ctx context.Context, category model.Ca
 
 func (cs *categoryService) GetSumPerCategory(
 	ctx context.Context,
+	trxType model.TrxTypeEnum,
 	startDate time.Time,
 	endDate time.Time,
 	accountNumber string,
@@ -77,5 +79,5 @@ func (cs *categoryService) GetSumPerCategory(
 		categoryId = cat.Id
 	}
 
-	return cs.cr.SumPerTrx(ctx, startDate, endDate, accountId, categoryId)
+	return cs.cr.SumPerTrx(ctx, trxType, startDate, endDate, accountId, categoryId)
 }

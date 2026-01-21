@@ -115,7 +115,7 @@ func (th *TrxHandler) GetTransactions(ctx *gin.Context) {
 		return
 	}
 
-	sumPerCategory, err := th.cs.GetSumPerCategory(ctx, startDate, endDate, req.AccountNumber, req.Category)
+	sumPerCategory, err := th.cs.GetSumPerCategory(ctx, req.TrxType, startDate, endDate, req.AccountNumber, req.Category)
 	if err != nil {
 		fmt.Println("Failed to process request: " + err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{

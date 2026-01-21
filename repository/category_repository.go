@@ -16,6 +16,7 @@ type CategoryRepository interface {
 	Create(ctx context.Context, category model.Category) (model.Category, error)
 	SumPerTrx(
 		ctx context.Context,
+		trxType model.TrxTypeEnum,
 		startDate time.Time,
 		endDate time.Time,
 		accountId uuid.UUID,
@@ -50,6 +51,7 @@ func (cr *categoryRepository) Create(ctx context.Context, category model.Categor
 
 func (cr *categoryRepository) SumPerTrx(
 	ctx context.Context,
+	trxType model.TrxTypeEnum,
 	startDate time.Time,
 	endDate time.Time,
 	accountId uuid.UUID,
@@ -66,6 +68,7 @@ func (cr *categoryRepository) SumPerTrx(
 		query = query.Where("id = ?", categoryId)
 	}
 
+	query = query.Where("trx_type = ?", trxType)
 	query = query.Where("trx_date >= ? AND trx_date <= ?", startDate, endDate)
 
 	err := query.Select("categories.name as category_name, sum(transactions.amount) as total").Joins("join transactions on transactions.category_id = categories.id").Group("categories.name").Scan(&result).Error
