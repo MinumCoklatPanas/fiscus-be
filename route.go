@@ -15,7 +15,7 @@ func RegisterAccountRoutes(db *gorm.DB, server *gin.RouterGroup) {
 	as := service.NewAccountService(ar)
 
 	cr := repository.NewCategoryRepository(db)
-	cs := service.NewCategoryService(cr)
+	cs := service.NewCategoryService(cr, as)
 
 	tr := repository.NewTrxRepository(db)
 	ts := service.NewTrxService(tr, as, cs)
@@ -31,8 +31,11 @@ func RegisterAccountRoutes(db *gorm.DB, server *gin.RouterGroup) {
 }
 
 func RegisterCategoryRoutes(db *gorm.DB, server *gin.RouterGroup) {
+	ar := repository.NewAccountRepository(db)
+	as := service.NewAccountService(ar)
+
 	cr := repository.NewCategoryRepository(db)
-	cs := service.NewCategoryService(cr)
+	cs := service.NewCategoryService(cr, as)
 	ch := handler.NewCategoryHandler(cs)
 
 	fmt.Println("Registering Category Routes..")
@@ -45,12 +48,12 @@ func RegisterTrxRoutes(db *gorm.DB, server *gin.RouterGroup) {
 	as := service.NewAccountService(ar)
 
 	cr := repository.NewCategoryRepository(db)
-	cs := service.NewCategoryService(cr)
+	cs := service.NewCategoryService(cr, as)
 
 	tr := repository.NewTrxRepository(db)
 	ts := service.NewTrxService(tr, as, cs)
 
-	th := handler.NewTrxHandler(ts)
+	th := handler.NewTrxHandler(ts, cs)
 
 	fmt.Println("Registering Trx Routes..")
 	server.GET("/transactions", th.GetTransactions)

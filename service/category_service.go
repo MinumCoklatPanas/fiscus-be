@@ -3,22 +3,34 @@ package service
 import (
 	"context"
 	"errors"
+	"fiscus/dto"
 	"fiscus/model"
 	"fiscus/repository"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type CategoryService interface {
 	GetAllCategories(ctx context.Context) ([]model.Category, error)
 	GetCategoryByName(ctx context.Context, name string) (model.Category, error)
 	CreateCategory(ctx context.Context, category model.Category) (model.Category, error)
+	GetSumPerCategory(
+		ctx context.Context,
+		startDate time.Time,
+		endDate time.Time,
+		accountNumber string,
+		categoryName string,
+	) ([]dto.TransactionPerCategory, error)
 }
 
 type categoryService struct {
 	cr repository.CategoryRepository
+	as AccountService
 }
 
-func NewCategoryService(cr repository.CategoryRepository) CategoryService {
-	return &categoryService{cr: cr}
+func NewCategoryService(cr repository.CategoryRepository, as AccountService) CategoryService {
+	return &categoryService{cr: cr, as: as}
 }
 
 func (cs *categoryService) GetAllCategories(ctx context.Context) ([]model.Category, error) {
@@ -38,4 +50,32 @@ func (cs *categoryService) GetCategoryByName(ctx context.Context, name string) (
 
 func (cs *categoryService) CreateCategory(ctx context.Context, category model.Category) (model.Category, error) {
 	return cs.cr.Create(ctx, category)
+}
+
+func (cs *categoryService) GetSumPerCategory(
+	ctx context.Context,
+	startDate time.Time,
+	endDate time.Time,
+	accountNumber string,
+	categoryName string,
+) ([]dto.TransactionPerCategory, error) {
+	var accountId uuid.UUID
+	if accountNumber != "" {
+		account, err := cs.as.GetAccountByNumber(ctx, accountNumber)
+		if err != nil {
+			return nil, err
+		}
+		accountId = account.Id
+	}
+
+	var categoryId uuid.UUID
+	if categoryName != "" {
+		cat, err := cs.GetCategoryByName(ctx, categoryName)
+		if err != nil {
+			return nil, err
+		}
+		categoryId = cat.Id
+	}
+
+	return cs.cr.SumPerTrx(ctx, startDate, endDate, accountId, categoryId)
 }

@@ -13,7 +13,7 @@ type Transaction struct {
 	AccountId  uuid.UUID
 	Amount     float64
 	TrxDate    time.Time
-	CategoryId uuid.UUID
+	CategoryId uuid.UUID `gorm:"type:uuid"`
 	Notes      *string
 	TrxType    TrxTypeEnum `gorm:"type:trx_type_enum"`
 	AuditColumn

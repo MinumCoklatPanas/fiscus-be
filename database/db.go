@@ -46,8 +46,8 @@ func GetDB() *gorm.DB {
 func MigrateTables() {
 	pg := GetDB()
 	pg.AutoMigrate(&model.Account{})
-	pg.AutoMigrate(&model.Transaction{})
 	pg.AutoMigrate(&model.Category{})
+	pg.AutoMigrate(&model.Transaction{})
 	pg.AutoMigrate(&model.RoutineExpense{})
 	pg.AutoMigrate(&model.RoutinePayment{})
 }

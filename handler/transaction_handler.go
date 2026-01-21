@@ -15,10 +15,11 @@ import (
 
 type TrxHandler struct {
 	ts service.TrxService
+	cs service.CategoryService
 }
 
-func NewTrxHandler(ts service.TrxService) *TrxHandler {
-	return &TrxHandler{ts: ts}
+func NewTrxHandler(ts service.TrxService, cs service.CategoryService) *TrxHandler {
+	return &TrxHandler{ts: ts, cs: cs}
 }
 
 func (th *TrxHandler) GetTransactions(ctx *gin.Context) {
@@ -114,9 +115,20 @@ func (th *TrxHandler) GetTransactions(ctx *gin.Context) {
 		return
 	}
 
+	sumPerCategory, err := th.cs.GetSumPerCategory(ctx, startDate, endDate, req.AccountNumber, req.Category)
+	if err != nil {
+		fmt.Println("Failed to process request: " + err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"success": "false",
+			"message": "Failed to get statistics.",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"success":      "true",
 		"transactions": trxs,
+		"statistics":   sumPerCategory,
 		"count":        count,
 	})
 }
